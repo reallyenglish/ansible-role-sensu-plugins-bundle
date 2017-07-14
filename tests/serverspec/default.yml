@@ -1,5 +1,20 @@
 - hosts: localhost
   roles:
-    - ansible-role-sensu-plugins-bundle
+    - name: reallyenglish.freebsd-repos
+      when: ansible_os_family == 'FreeBSD'
+    - name: reallyenglish.sensu-client
+    - name: ansible-role-sensu-plugins-bundle
   vars:
-    sensu-plugins-bundle_config: ""
+    freebsd_repos:
+      sensu:
+        enabled: "true"
+        url: https://sensu.global.ssl.fastly.net/freebsd/FreeBSD:10:amd64/
+        mirror_type: srv
+        signature_type: none
+        priority: 100
+        state: present
+    sensu_client_gem_binary: "{% if ansible_os_family == 'OpenBSD' %}gem{% else %}/opt/sensu/embedded/bin/gem{% endif %}"
+    sensu_plugins_bundle_list:
+      - repo: https://github.com/sensu-plugins/sensu-plugins-load-checks.git
+        version: 2.0.0
+        state: present

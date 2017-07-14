@@ -1,58 +1,77 @@
 require "spec_helper"
 require "serverspec"
 
-package = "sensu-plugins-bundle"
-service = "sensu-plugins-bundle"
-config  = "/etc/sensu-plugins-bundle/sensu-plugins-bundle.conf"
-user    = "sensu-plugins-bundle"
-group   = "sensu-plugins-bundle"
-ports   = [PORTS]
-log_dir = "/var/log/sensu-plugins-bundle"
-db_dir  = "/var/lib/sensu-plugins-bundle"
+plugins_dir = "/etc/sensu/plugins"
+bundled_plugins_dir = "/etc/sensu/bundled_plugins"
+git_package = "git"
+bundler_package = "bundler"
+user = "sensu"
+group = "sensu"
+default_user = "root"
+default_group = "root"
 
 case os[:family]
 when "freebsd"
-  config = "/usr/local/etc/sensu-plugins-bundle.conf"
-  db_dir = "/var/db/sensu-plugins-bundle"
+  plugins_dir = "/usr/local/etc/sensu/plugins"
+  bundled_plugins_dir = "/usr/local/etc/sensu/bundled_plugins"
+  bundler_package = "rubygem-bundler"
+  default_group = "wheel"
 end
 
-describe package(package) do
-  it { should be_installed }
+[ git_package, bundler_package ].each do |p|
+  describe package(p) do
+    it { should be_installed }
+  end
 end
 
-describe file(config) do
+describe file("#{plugins_dir}/bundled_check") do
+  it { should be_exist }
   it { should be_file }
-  its(:content) { should match Regexp.escape("sensu-plugins-bundle") }
-end
-
-describe file(log_dir) do
-  it { should exist }
   it { should be_mode 755 }
   it { should be_owned_by user }
   it { should be_grouped_into group }
 end
 
-describe file(db_dir) do
-  it { should exist }
+describe file(bundled_plugins_dir) do
+  it { should be_exist }
+  it { should be_directory }
   it { should be_mode 755 }
   it { should be_owned_by user }
   it { should be_grouped_into group }
 end
 
-case os[:family]
-when "freebsd"
-  describe file("/etc/rc.conf.d/sensu-plugins-bundle") do
-    it { should be_file }
-  end
+describe file("#{bundled_plugins_dir}/sensu-plugins-load-checks") do
+  it { should be_exist }
+  it { should be_directory }
+  it { should be_mode 755 }
+  it { should be_owned_by user }
+  it { should be_grouped_into group }
 end
 
-describe service(service) do
-  it { should be_running }
-  it { should be_enabled }
+describe file("#{bundled_plugins_dir}/sensu-plugins-load-checks/vendor/bundle") do
+  it { should be_exist }
+  it { should be_directory }
+  it { should be_mode 755 }
+  it { should be_owned_by user }
+  it { should be_grouped_into group }
 end
 
-ports.each do |p|
-  describe port(p) do
-    it { should be_listening }
-  end
+describe file("#{bundled_plugins_dir}/sensu-plugins-load-checks/Gemfile") do
+  it { should be_exist }
+  it { should be_file }
+  it { should be_mode 644 }
+  it { should be_owned_by user }
+  it { should be_grouped_into group }
+end
+
+describe command("( cd #{bundled_plugins_dir}/sensu-plugins-load-checks && bundle exec gem list )") do
+  its(:exit_status) { should eq 0 }
+  its(:stderr) { should eq "" }
+  its(:stdout) { should match(/sensu-plugins-load-checks/) }
+end
+
+describe command ("#{plugins_dir}/bundled_check sensu-plugins-load-checks check-load.rb -c 1000,1000,1000 -w 1000,1000,1000") do
+  its(:exit_status) { should eq 0 }
+  its(:stderr) { should eq "" }
+  its(:stdout) { should match(/\sOK:/) }
 end

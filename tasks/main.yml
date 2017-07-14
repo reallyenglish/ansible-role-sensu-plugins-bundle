@@ -5,33 +5,51 @@
 
 - include: "install-{{ ansible_os_family }}.yml"
 
-- name: Create log directory
-  file:
-    path: "{{ sensu-plugins-bundle_log_dir }}"
-    mode: 0755
-    owner: "{{ sensu-plugins-bundle_user }}"
-    group: "{{ sensu-plugins-bundle_group }}"
-    state: directory
-  notify: Restart sensu-plugins-bundle
-
-- name: Create db directory
-  file:
-    path: "{{ sensu-plugins-bundle_db_dir }}"
-    mode: 0755
-    owner: "{{ sensu-plugins-bundle_user }}"
-    group: "{{ sensu-plugins-bundle_group }}"
-    state: directory
-  notify: Restart sensu-plugins-bundle
-
-- name: Create sensu-plugins-bundle.conf
+- name: Install wrapper
   template:
-    src: sensu-plugins-bundle.conf.j2
-    dest: "{{ sensu-plugins-bundle_conf_file }}"
-    validate: echo %s
-  notify: Restart sensu-plugins-bundle
+    src: bundled_check.j2
+    dest: "{{ sensu_plugins_bundle_plugins_dir }}/bundled_check"
+    mode: 0755
+    owner: "{{ sensu_plugins_bundle_user }}"
+    group: "{{ sensu_plugins_bundle_group }}"
+    validate: sh -n %s
 
-- name: Start sensu-plugins-bundle
-  service:
-    name: "{{ sensu-plugins-bundle_service }}"
-    enabled: true
-    state: started
+- name: Create sensu_plugins_bundle_bundled_plugins_dir
+  file:
+    path: "{{ sensu_plugins_bundle_bundled_plugins_dir }}"
+    owner: "{{ sensu_plugins_bundle_user }}"
+    group: "{{ sensu_plugins_bundle_group }}"
+    state: directory
+
+- set_fact:
+    sensu_plugins_bundle_list_present: "{{ sensu_plugins_bundle_list | selectattr('state', 'match', '^present$') | list }}"
+
+- set_fact:
+    sensu_plugins_bundle_list_absent: "{{ sensu_plugins_bundle_list | selectattr('state', 'match', '^absent$') | list }}"
+
+- name: Install sensu_plugins_bundle_list_present
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ sensu_plugins_bundle_bundled_plugins_dir }}/{{ item.repo | basename | splitext | first }}"
+    version: "{{ item.version | default() }}"
+  become: yes
+  become_user: "{{ sensu_plugins_bundle_user }}"
+  with_items: "{{ sensu_plugins_bundle_list_present }}"
+
+- name: Remove sensu_plugins_bundle_list_absent
+  file:
+    path: "{{ sensu_plugins_bundle_bundled_plugins_dir }}/{{ item.repo | basename | splitext | first }}"
+    state: absent
+  with_items: "{{ sensu_plugins_bundle_list_absent }}"
+
+- name: Run bundle install
+  bundler:
+    chdir: "{{ sensu_plugins_bundle_bundled_plugins_dir }}/{{ item.repo | basename | splitext | first }}"
+    exclude_groups:
+      - development
+      - test
+    extra_args: --path vendor/bundle
+    state: present
+  become: yes
+  become_user: "{{ sensu_plugins_bundle_user }}"
+  with_items: "{{ sensu_plugins_bundle_list_present }}"
