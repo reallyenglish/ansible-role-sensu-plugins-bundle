@@ -1,0 +1,8 @@
+sensu-plugins-bundle_user: sensu-plugins-bundle
+sensu-plugins-bundle_group: sensu-plugins-bundle
+sensu-plugins-bundle_log_dir: /var/log/sensu-plugins-bundle
+sensu-plugins-bundle_db_dir: "{{ __sensu-plugins-bundle_db_dir }}"
+sensu-plugins-bundle_service: sensu-plugins-bundle
+sensu-plugins-bundle_conf_dir: "{{ __sensu-plugins-bundle_conf_dir }}"
+sensu-plugins-bundle_conf_file: "{{ __sensu-plugins-bundle_conf_dir }}/sensu-plugins-bundle.conf"
+sensu-plugins-bundle_flags: ""

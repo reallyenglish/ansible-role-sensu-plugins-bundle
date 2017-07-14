@@ -1,0 +1,37 @@
+---
+# tasks file for ansible-role-sensu-plugins-bundle
+
+- include_vars: "{{ ansible_os_family }}.yml"
+
+- include: "install-{{ ansible_os_family }}.yml"
+
+- name: Create log directory
+  file:
+    path: "{{ sensu-plugins-bundle_log_dir }}"
+    mode: 0755
+    owner: "{{ sensu-plugins-bundle_user }}"
+    group: "{{ sensu-plugins-bundle_group }}"
+    state: directory
+  notify: Restart sensu-plugins-bundle
+
+- name: Create db directory
+  file:
+    path: "{{ sensu-plugins-bundle_db_dir }}"
+    mode: 0755
+    owner: "{{ sensu-plugins-bundle_user }}"
+    group: "{{ sensu-plugins-bundle_group }}"
+    state: directory
+  notify: Restart sensu-plugins-bundle
+
+- name: Create sensu-plugins-bundle.conf
+  template:
+    src: sensu-plugins-bundle.conf.j2
+    dest: "{{ sensu-plugins-bundle_conf_file }}"
+    validate: echo %s
+  notify: Restart sensu-plugins-bundle
+
+- name: Start sensu-plugins-bundle
+  service:
+    name: "{{ sensu-plugins-bundle_service }}"
+    enabled: true
+    state: started

@@ -1,0 +1,6 @@
+---
+
+- name: Restart sensu-plugins-bundle
+  service:
+    name: sensu-plugins-bundle
+    state: restarted

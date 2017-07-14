@@ -1,0 +1,6 @@
+---
+
+- name: Install sensu-plugins-bundle
+  pkgng:
+    name: sensu-plugins-bundle
+    state: present

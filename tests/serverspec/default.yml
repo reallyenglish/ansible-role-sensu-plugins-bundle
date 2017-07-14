@@ -1,0 +1,5 @@
+- hosts: localhost
+  roles:
+    - ansible-role-sensu-plugins-bundle
+  vars:
+    sensu-plugins-bundle_config: ""

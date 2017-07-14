@@ -1,0 +1,2 @@
+__sensu-plugins-bundle_db_dir: /var/db/sensu-plugins-bundle
+__sensu-plugins-bundle_conf_dir: /usr/local/etc/sensu-plugins-bundle
