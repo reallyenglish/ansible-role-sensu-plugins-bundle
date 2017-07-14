@@ -1,6 +1,11 @@
 ---
 
-- name: Install sensu-plugins-bundle
+- name: Install git
   pkgng:
-    name: sensu-plugins-bundle
+    name: git
+    state: present
+
+- name: Install bundler
+  pkgng:
+    name: rubygem-bundler
     state: present
