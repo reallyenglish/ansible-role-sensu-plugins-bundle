@@ -1,0 +1,28 @@
+#!/bin/sh
+# Managed by ansible
+set -e
+
+show_usage() {
+  echo "bundled_check: a simple bundler wrapper"
+  echo "Usage: bundled_check plugin_name check_command [arg [...]]"
+  exit
+}
+
+if [ "$#" == "0" ]; then
+    show_usage
+fi
+
+if [ "$1" == "-h" ]; then
+    show_usage
+fi
+
+name=$1
+shift
+check=$1
+shift
+
+(
+	cd "{{ sensu_plugins_bundle_bundled_plugins_dir }}/${name}"
+	bundle exec bin/${check} $*
+)
+# vim: ft=sh

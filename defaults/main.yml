@@ -1,8 +1,6 @@
-sensu-plugins-bundle_user: sensu-plugins-bundle
-sensu-plugins-bundle_group: sensu-plugins-bundle
-sensu-plugins-bundle_log_dir: /var/log/sensu-plugins-bundle
-sensu-plugins-bundle_db_dir: "{{ __sensu-plugins-bundle_db_dir }}"
-sensu-plugins-bundle_service: sensu-plugins-bundle
-sensu-plugins-bundle_conf_dir: "{{ __sensu-plugins-bundle_conf_dir }}"
-sensu-plugins-bundle_conf_file: "{{ __sensu-plugins-bundle_conf_dir }}/sensu-plugins-bundle.conf"
-sensu-plugins-bundle_flags: ""
+sensu_plugins_bundle_user: "{{ __sensu_plugins_bundle_user }}"
+sensu_plugins_bundle_group: "{{ __sensu_plugins_bundle_group }}"
+sensu_plugins_bundle_sensu_dir: "{{ __sensu_plugins_bundle_sensu_dir }}"
+sensu_plugins_bundle_bundled_plugins_dir: "{{ sensu_plugins_bundle_sensu_dir }}/bundled_plugins"
+sensu_plugins_bundle_plugins_dir: "{{ sensu_plugins_bundle_sensu_dir }}/plugins"
+sensu_plugins_bundle_list: []
